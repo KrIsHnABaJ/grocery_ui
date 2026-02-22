@@ -1,0 +1,67 @@
+<div class="profile">
+  <div class="section">
+    <h2>Profile Settings</h2>
+    <p>Manage your contact information.</p>
+
+    <label>
+      Email
+      <input type="email" [(ngModel)]="email" />
+    </label>
+
+    <label>
+      Contact Number
+      <input type="text" [(ngModel)]="contactNumber" />
+    </label>
+
+    <label>
+      Address
+      <input type="text" [(ngModel)]="address" />
+    </label>
+
+    <div class="message" *ngIf="profileMessage">{{profileMessage}}</div>
+
+    <button class="primary" (click)="updateProfile()">Update Details</button>
+  </div>
+
+  <div class="section">
+    <h2>Change Password</h2>
+    <p>Use 8-13 characters and confirm the new password.</p>
+
+    <label>
+      Old Password
+      <input type="password" [(ngModel)]="oldPassword" />
+    </label>
+
+    <label>
+      New Password
+      <input type="password" [(ngModel)]="newPassword" />
+    </label>
+
+    <label>
+      Confirm Password
+      <input type="password" [(ngModel)]="confirmPassword" />
+    </label>
+
+    <div class="message" *ngIf="passwordMessage">{{passwordMessage}}</div>
+
+    <button class="primary" (click)="changePassword()">Change Password</button>
+  </div>
+
+  <div class="section">
+    <h2>Account Status</h2>
+    <p>Status: <strong>{{user?.status}}</strong></p>
+
+    <div *ngIf="user?.status === 'deactivated'">
+      <p style="color: #d97706; margin-bottom: 12px;">⚠️ Your account is deactivated. You cannot place orders until you restore it.</p>
+      <label>
+        Password (to restore account)
+        <input type="password" [(ngModel)]="restorePassword" />
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" (click)="deactivate()" *ngIf="user?.status === 'active'">Deactivate</button>
+      <button class="primary" (click)="restore()" *ngIf="user?.status === 'deactivated'">Restore Account</button>
+    </div>
+  </div>
+</div>

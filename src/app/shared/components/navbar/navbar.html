@@ -1,0 +1,34 @@
+<nav class="navbar">
+  <div class="brand">
+    <span class="logo">🛒</span>
+    <div>
+      <h2>Grocery Store</h2>
+      <span class="tagline">Fresh picks, fast checkout</span>
+    </div>
+  </div>
+
+  <div class="links" *ngIf="auth.currentUser$ | async as user; else guest">
+    <ng-container *ngIf="user.role === 'customer'; else adminLinks">
+      <a routerLink="/products" routerLinkActive="active">Products</a>
+      <a routerLink="/cart" routerLinkActive="active">Cart</a>
+      <a routerLink="/orders" routerLinkActive="active">Orders</a>
+      <a routerLink="/profile" routerLinkActive="active">Profile</a>
+    </ng-container>
+
+    <ng-template #adminLinks>
+      <a routerLink="/admin/products" routerLinkActive="active">View Products</a>
+      <a routerLink="/admin/products/add" routerLinkActive="active">Add Product</a>
+      <a routerLink="/admin/bulk-upload" routerLinkActive="active">Bulk Upload</a>
+      <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
+    </ng-template>
+
+    <button class="logout" (click)="logout()">Logout</button>
+  </div>
+
+  <ng-template #guest>
+    <div class="links">
+      <a routerLink="/login" routerLinkActive="active">Login</a>
+      <a routerLink="/register" routerLinkActive="active">Register</a>
+    </div>
+  </ng-template>
+</nav>

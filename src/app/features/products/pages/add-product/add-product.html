@@ -1,0 +1,33 @@
+<div class="form-card">
+  <div class="header">
+    <h2>Add Product</h2>
+    <p>Create a new item for your inventory.</p>
+  </div>
+
+  <div class="fields">
+    <label>
+      Name
+      <input placeholder="e.g. Organic Apples" [(ngModel)]="product.name">
+    </label>
+    <label>
+      Description
+      <input placeholder="Short description" [(ngModel)]="product.description">
+    </label>
+    <label>
+      Image URL (optional)
+      <input placeholder="https://" [(ngModel)]="product.imageUrl">
+    </label>
+    <label>
+      Price
+      <input type="number" placeholder="0" [(ngModel)]="product.price">
+    </label>
+    <label>
+      Quantity
+      <input type="number" placeholder="0" [(ngModel)]="product.quantity">
+    </label>
+  </div>
+
+  <div class="error" *ngIf="errorMessage">{{errorMessage}}</div>
+
+  <button class="primary" (click)="save()">Save Product</button>
+</div>

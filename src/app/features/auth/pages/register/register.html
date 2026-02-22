@@ -1,0 +1,39 @@
+<div class="auth-card">
+  <div class="header">
+    <h2>Create Account</h2>
+    <p>Start shopping fresh groceries today.</p>
+  </div>
+
+  <label>
+    Name
+    <input type="text" placeholder="Your name" [(ngModel)]="name" />
+  </label>
+
+  <label>
+    Email
+    <input type="email" placeholder="you@example.com" [(ngModel)]="email" />
+  </label>
+
+  <label>
+    Contact Number
+    <input type="text" placeholder="9876543210" [(ngModel)]="contactNumber" />
+  </label>
+
+  <label>
+    Address
+    <input type="text" placeholder="Street, City" [(ngModel)]="address" />
+  </label>
+
+  <label>
+    Password
+    <input type="password" placeholder="********" [(ngModel)]="password" />
+  </label>
+
+  <div class="error" *ngIf="errorMessage">{{errorMessage}}</div>
+
+  <button class="primary" (click)="register()">Create Account</button>
+
+  <p class="alt">
+    Already have an account? <a routerLink="/login">Login</a>
+  </p>
+</div>

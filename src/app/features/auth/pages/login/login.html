@@ -1,0 +1,24 @@
+<div class="auth-card">
+  <div class="header">
+    <h2>Welcome Back</h2>
+    <p>Login to continue shopping.</p>
+  </div>
+
+  <label>
+    Email or Username
+    <input type="text" placeholder="you@example.com" [(ngModel)]="identifier" />
+  </label>
+
+  <label>
+    Password
+    <input type="password" placeholder="********" [(ngModel)]="password" />
+  </label>
+
+  <div class="error" *ngIf="errorMessage">{{errorMessage}}</div>
+
+  <button class="primary" (click)="login()">Login</button>
+
+  <p class="alt">
+    New here? <a routerLink="/register">Create an account</a>
+  </p>
+</div>

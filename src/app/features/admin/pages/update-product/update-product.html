@@ -1,0 +1,37 @@
+<div class="form-card" *ngIf="product">
+  <div class="header">
+    <h2>Update Product</h2>
+    <p>Edit the product details.</p>
+  </div>
+
+  <div class="fields">
+    <label>
+      Name
+      <input [(ngModel)]="product.name" />
+    </label>
+    <label>
+      Description
+      <input [(ngModel)]="product.description" />
+    </label>
+    <label>
+      Image URL (optional)
+      <input [(ngModel)]="product.imageUrl" />
+    </label>
+    <label>
+      Price
+      <input type="number" [(ngModel)]="product.price" />
+    </label>
+    <label>
+      Quantity
+      <input type="number" [(ngModel)]="product.quantity" />
+    </label>
+    <label>
+      Discount (optional)
+      <input type="number" [(ngModel)]="product.discount" />
+    </label>
+  </div>
+
+  <div class="error" *ngIf="errorMessage">{{errorMessage}}</div>
+
+  <button class="primary" (click)="save()">Save Changes</button>
+</div>

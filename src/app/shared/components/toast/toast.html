@@ -1,0 +1,5 @@
+<div class="toast" *ngIf="notifications.messages$ | async as messages">
+  <div class="message" *ngFor="let item of messages" [ngClass]="item.type">
+    {{item.message}}
+  </div>
+</div>

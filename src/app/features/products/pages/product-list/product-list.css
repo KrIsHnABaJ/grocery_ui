@@ -1,0 +1,55 @@
+.page {
+	display: grid;
+	gap: 20px;
+}
+
+.page-header {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+}
+
+.page-header h2 {
+	margin: 0;
+}
+
+.subtitle {
+	margin: 4px 0 0;
+	color: #6b7280;
+}
+
+.search {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.search input {
+	min-width: 240px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid #e5e7eb;
+	background: #ffffff;
+}
+
+.count {
+	color: #6b7280;
+	font-size: 0.9rem;
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 16px;
+}
+
+.empty {
+	padding: 20px;
+	border-radius: 12px;
+	background: #f9fafb;
+	color: #6b7280;
+	text-align: center;
+}

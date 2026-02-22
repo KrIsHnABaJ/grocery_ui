@@ -1,0 +1,25 @@
+<div class="orders">
+  <div class="header">
+    <h2>Order History</h2>
+    <p>Review your past purchases.</p>
+  </div>
+
+  <div class="order" *ngFor="let order of orders">
+    <div class="order-head">
+      <div>
+        <strong>Order #{{order.id}}</strong>
+        <span>{{order.createdAt | date: 'medium'}}</span>
+      </div>
+      <div class="total">₹ {{order.total}}</div>
+    </div>
+
+    <div class="items">
+      <div class="item" *ngFor="let item of order.items">
+        <span>{{item.name}}</span>
+        <span>₹ {{item.price}} x {{item.quantity}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty" *ngIf="!orders.length">No orders yet.</div>
+</div>

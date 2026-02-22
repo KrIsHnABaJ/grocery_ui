@@ -1,0 +1,34 @@
+<div class="admin">
+  <div class="header">
+    <div>
+      <h2>Products (Admin)</h2>
+      <p>Manage products and inventory.</p>
+    </div>
+    <div class="actions">
+      <a class="primary" routerLink="/admin/products/add">Add Product</a>
+      <a class="ghost" routerLink="/admin/bulk-upload">Bulk Upload</a>
+    </div>
+  </div>
+
+  <div class="table">
+    <div class="row head">
+      <span>ID</span>
+      <span>Name</span>
+      <span>Price</span>
+      <span>Quantity</span>
+      <span>Actions</span>
+    </div>
+    <div class="row" *ngFor="let product of products">
+      <span>#{{product.id}}</span>
+      <span>{{product.name}}</span>
+      <span>₹ {{product.price}}</span>
+      <span>{{product.quantity}}</span>
+      <div class="row-actions">
+        <a class="ghost" [routerLink]="['/admin/products', product.id, 'edit']">Update</a>
+        <button class="danger" (click)="deleteProduct(product.id)">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty" *ngIf="!products.length">No products available.</div>
+</div>

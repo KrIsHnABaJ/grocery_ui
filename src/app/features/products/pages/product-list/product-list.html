@@ -1,0 +1,27 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>Products</h2>
+      <p class="subtitle">Browse and manage your grocery inventory</p>
+    </div>
+
+    <div class="search">
+      <input
+        type="text"
+        placeholder="Search items..."
+        [(ngModel)]="searchTerm" />
+      <span class="count">{{filteredProducts.length}} items</span>
+    </div>
+  </div>
+
+  <div class="grid" *ngIf="filteredProducts.length; else empty">
+    <app-product-card
+      *ngFor="let p of filteredProducts"
+      [product]="p">
+    </app-product-card>
+  </div>
+
+  <ng-template #empty>
+    <div class="empty">No items match your search.</div>
+  </ng-template>
+</div>

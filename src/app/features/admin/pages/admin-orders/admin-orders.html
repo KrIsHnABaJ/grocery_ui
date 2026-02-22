@@ -1,0 +1,32 @@
+<div class="admin-orders">
+  <div class="header">
+    <h2>All Orders</h2>
+    <p>Review all customer orders.</p>
+  </div>
+
+  <div class="orders" *ngIf="orders.length; else empty">
+    <div class="order-card" *ngFor="let order of orders">
+      <div class="order-summary" (click)="toggleExpand(order.id)">
+        <div>
+          <strong>Order #{{order.id}}</strong>
+          <span class="user">User ID: {{order.userId}}</span>
+          <span class="date">{{order.createdAt | date: 'medium'}}</span>
+        </div>
+        <div class="total">₹ {{order.total}}</div>
+      </div>
+
+      <div class="order-details" *ngIf="expandedOrder === order.id">
+        <div class="items">
+          <div class="item" *ngFor="let item of order.items">
+            <span>{{item.name}}</span>
+            <span>₹ {{item.price}} x {{item.quantity}} = ₹ {{item.price * item.quantity}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #empty>
+    <div class="empty">No orders placed yet.</div>
+  </ng-template>
+</div>

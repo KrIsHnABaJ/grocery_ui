@@ -1,0 +1,31 @@
+<div class="upload">
+  <div class="header">
+    <h2>Bulk Upload</h2>
+    <p>Upload a CSV file with products.</p>
+  </div>
+
+  <label class="drop">
+    <input type="file" accept=".csv" (change)="handleFile($event)" />
+    <span>Drag & drop CSV here or click to select</span>
+  </label>
+
+  <div class="error" *ngIf="errorMessage">{{errorMessage}}</div>
+
+  <div class="preview" *ngIf="preview.length">
+    <h3>Preview ({{preview.length}} items)</h3>
+    <div class="row head">
+      <span>Name</span>
+      <span>Description</span>
+      <span>Price</span>
+      <span>Qty</span>
+    </div>
+    <div class="row" *ngFor="let item of preview">
+      <span>{{item.name}}</span>
+      <span>{{item.description}}</span>
+      <span>₹ {{item.price}}</span>
+      <span>{{item.quantity}}</span>
+    </div>
+  </div>
+
+  <button class="primary" (click)="upload()">Upload Products</button>
+</div>

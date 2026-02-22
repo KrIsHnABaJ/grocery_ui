@@ -1,0 +1,26 @@
+<div class="card">
+  <img class="thumb" [src]="product.imageUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80'" alt="Product image" />
+
+  <div class="card-body">
+    <div class="card-header">
+      <h3>{{product.name}}</h3>
+      <span class="price">₹ {{product.price}}</span>
+    </div>
+
+    <p class="description">{{product.description}}</p>
+
+    <div class="meta">
+      <span>Quantity: {{product.quantity}}</span>
+      <span class="stock" [ngClass]="isOutOfStock ? 'out-of-stock' : 'in-stock'">
+        {{isOutOfStock ? 'Out of stock' : 'In stock'}}
+      </span>
+    </div>
+
+    <div class="actions">
+      <button class="primary" [disabled]="isOutOfStock" (click)="addToCart()">
+        {{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}}
+      </button>
+      <button *ngIf="showDelete" class="ghost" (click)="remove()">Delete</button>
+    </div>
+  </div>
+</div>

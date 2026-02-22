@@ -1,0 +1,33 @@
+<div class="cart">
+  <div class="cart-header">
+    <div>
+      <h2>Your Cart</h2>
+      <p>Review selected items before checkout.</p>
+    </div>
+    <div class="total">Total: ₹ {{cart.getTotal()}}</div>
+  </div>
+
+  <div class="items" *ngIf="cart.getItems().length; else empty">
+    <div class="item" *ngFor="let item of cart.getItems(); let i=index">
+      <div>
+        <div class="name">{{item.name}}</div>
+        <div class="price">₹ {{item.price}}</div>
+      </div>
+      <div class="controls">
+        <input
+          type="number"
+          min="1"
+          [max]="item.maxStock"
+          [value]="item.quantity"
+          (input)="updateQuantity(item.id, $any($event.target).value)" />
+        <button class="ghost" (click)="remove(item.id)">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #empty>
+    <div class="empty">Your cart is empty.</div>
+  </ng-template>
+
+  <button class="primary" (click)="placeOrder()">Place Order</button>
+</div>

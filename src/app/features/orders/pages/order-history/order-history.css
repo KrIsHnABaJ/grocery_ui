@@ -1,0 +1,59 @@
+.orders {
+  display: grid;
+  gap: 16px;
+}
+
+.header h2 {
+  margin: 0 0 4px;
+}
+
+.header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.order {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(18, 38, 63, 0.08);
+  display: grid;
+  gap: 12px;
+}
+
+.order-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #374151;
+}
+
+.order-head span {
+  display: block;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.total {
+  font-weight: 700;
+}
+
+.items {
+  display: grid;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  color: #374151;
+}
+
+.empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
