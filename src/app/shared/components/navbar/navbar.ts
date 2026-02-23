@@ -14,7 +14,17 @@ export class NavbarComponent {
   constructor(public auth: AuthService, private router: Router) {}
 
   logout(): void {
-    this.auth.logout();
-    this.router.navigate(['/login']);
+    // Subscribe to logout observable to ensure the auth service clears state
+    this.auth.logout().subscribe({
+      next: () => {
+        // Navigate to login after logout completes
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        console.error('Logout error:', err);
+        // Still navigate even if logout fails on server
+        this.router.navigate(['/login']);
+      }
+    });
   }
 }
