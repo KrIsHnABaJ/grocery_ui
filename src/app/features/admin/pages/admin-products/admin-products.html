@@ -12,14 +12,12 @@
 
   <div class="table">
     <div class="row head">
-      <span>ID</span>
       <span>Name</span>
       <span>Price</span>
       <span>Quantity</span>
       <span>Actions</span>
     </div>
     <div class="row" *ngFor="let product of products">
-      <span>#{{product.id}}</span>
       <span>{{product.name}}</span>
       <span>₹ {{product.price}}</span>
       <span>{{product.quantity}}</span>

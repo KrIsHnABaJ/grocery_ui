@@ -4,22 +4,30 @@
     <p>Review your past purchases.</p>
   </div>
 
+  <div class="loading" *ngIf="loading">Loading orders...</div>
+
+  <div class="error" *ngIf="error && !loading">{{error}}</div>
+
   <div class="order" *ngFor="let order of orders">
     <div class="order-head">
       <div>
-        <strong>Order #{{order.id}}</strong>
-        <span>{{order.createdAt | date: 'medium'}}</span>
+        <span>{{order.orderDate | date: 'medium'}}</span>
       </div>
-      <div class="total">₹ {{order.total}}</div>
+      <div class="total">₹ {{order.totalAmount}}</div>
     </div>
 
-    <div class="items">
+    <div class="items" *ngIf="order.items && order.items.length > 0">
       <div class="item" *ngFor="let item of order.items">
-        <span>{{item.name}}</span>
-        <span>₹ {{item.price}} x {{item.quantity}}</span>
+        <div class="item-details">
+          <span class="item-name">{{item.productName}}</span>
+          <span class="item-price">₹ {{item.price | number: '1.2-2'}} x {{item.quantity}}</span>
+          <span class="item-subtotal">=  ₹ {{item.subtotal | number: '1.2-2'}}</span>
+        </div>
       </div>
     </div>
+
   </div>
 
-  <div class="empty" *ngIf="!orders.length">No orders yet.</div>
+  <div class="empty" *ngIf="!orders.length && !loading && !error">No orders yet.</div>
 </div>
+

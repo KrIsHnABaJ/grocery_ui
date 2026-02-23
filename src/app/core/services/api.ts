@@ -1,185 +1,132 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-
-/**
- * 🟡 BACKEND MAPPING FOR APISERVICE
- * This service handles product catalog and order management.
- * Replace all mock data with Spring Boot REST API calls.
- * 
- * SPRING BOOT ENDPOINTS TO CREATE:
- * 
- * ===== PRODUCT MANAGEMENT =====
- * 1. GET /api/products
- *    Response: [{ id, name, description, price, quantity, imageUrl }]
- * 
- * 2. GET /api/products/:id
- *    Response: { id, name, description, price, quantity, imageUrl }
- *    Error: 404 Product not found
- * 
- * 3. POST /api/products
- *    Request: { name, description, price, quantity, imageUrl? }
- *    Response: { id, name, description, price, quantity, imageUrl }
- *    Error: 400 Name/description required / Price > 10000
- * 
- * 4. PUT /api/products/:id
- *    Request: { name, description, price, quantity, imageUrl? }
- *    Response: { id, name, description, price, quantity, imageUrl }
- *    Error: 404 Not found / 400 Invalid fields
- * 
- * 5. DELETE /api/products/:id
- *    Response: { success: true }
- *    Error: 404 Not found
- * 
- * 6. POST /api/products/bulk
- *    Request: [{ name, description, price, quantity, imageUrl? }, ...]
- *    Response: [{ id, name, description, price, quantity, imageUrl }, ...]
- *    Error: 400 Invalid items
- * 
- * 7. PUT /api/products/:id/decrement-quantity
- *    Query: ?amount=1 (default: 1)
- *    Response: { success: true, newQuantity: number }
- *    Error: 404 Not found / 400 Insufficient quantity
- * 
- * ===== ORDER MANAGEMENT =====
- * 8. POST /api/orders
- *    Request: { userId: number, items: [{ id, price, quantity, cartQuantity }], total: number }
- *    Response: { id, userId, items, total, createdAt }
- *    Error: 400 Invalid items / Cart empty
- * 
- * 9. GET /api/orders/user/:userId
- *    Response: [{ id, userId, items, total, createdAt }, ...]
- * 
- * 10. GET /api/orders (admin only)
- *    Response: [{ id, userId, items, total, createdAt }, ...]
- *    Error: 401 Unauthorized / 403 Admin only
- */
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
 
-  // 🟡 MOCK DATA (temporary until backend is ready)
-  private products = [
-    {
-      id: 1,
-      name: 'Rice',
-      description: 'Premium Basmati Rice',
-      price: 80,
-      quantity: 10,
-      imageUrl: 'https://images.unsplash.com/photo-1505576391880-b3f9d713dc4f?auto=format&fit=crop&w=400&q=80'
-    },
-    {
-      id: 2,
-      name: 'Milk',
-      description: 'Fresh Cow Milk',
-      price: 50,
-      quantity: 20,
-      imageUrl: 'https://images.unsplash.com/photo-1580915411954-282cb1c9a87d?auto=format&fit=crop&w=400&q=80'
-    },
-    {
-      id: 3,
-      name: 'Sugar',
-      description: 'Refined Sugar',
-      price: 45,
-      quantity: 15,
-      imageUrl: 'https://images.unsplash.com/photo-1505575967455-40e256f73376?auto=format&fit=crop&w=400&q=80'
-    }
-  ];
+  private baseUrl = 'http://localhost:8080';
 
-  private orders: any[] = [];
+  constructor(private http: HttpClient) {}
+
+  // ==================== PRODUCTS ====================
 
   getProducts(): Observable<any[]> {
-    return of(this.products);
-
-    // � REPLACE WITH SPRING BOOT:
-    // return this.http.get<any[]>('/api/products');
+    return this.http.get<any[]>(`${this.baseUrl}/product-service/products`)
+      .pipe(
+        catchError(err => {
+          console.error('Failed to fetch products', err);
+          return of([]);
+        })
+      );
   }
 
-  getProductById(id: number): Observable<any | undefined> {
-    return of(this.products.find(product => product.id === id));
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.get<any>(`/api/products/${id}`);
+  getProductById(id: number): Observable<any> {
+    console.log(`API: Fetching product ${id} from ${this.baseUrl}/product-service/products/${id}`);
+    return this.http.get<any>(`${this.baseUrl}/product-service/products/${id}`)
+      .pipe(
+        tap(data => console.log(`API: Product ${id} fetched:`, data)),
+        catchError(err => {
+          console.error(`API: Failed to fetch product ${id}`, err);
+          throw err;
+        })
+      );
   }
 
-  addProduct(product:any) {
-    const newProduct = {
-      ...product,
-      id: this.products.length + 1,
-      imageUrl: product.imageUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80'
-    };
-    this.products.push(newProduct);
-    return of(newProduct);
-
-    // � REPLACE WITH SPRING BOOT:
-    // return this.http.post<any>('/api/products', product);
+  addProduct(product: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/product-service/products`, product)
+      .pipe(
+        catchError(err => {
+          console.error('Failed to create product', err);
+          throw err;
+        })
+      );
   }
 
-  updateProduct(updated:any) {
-    this.products = this.products.map(product =>
-      product.id === updated.id ? { ...product, ...updated } : product
+  updateProduct(updated: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/product-service/products/${updated.id}`, updated)
+      .pipe(
+        catchError(err => {
+          console.error('Failed to update product', err);
+          throw err;
+        })
+      );
+  }
+
+  deleteProduct(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/product-service/products/${id}`)
+      .pipe(
+        catchError(err => {
+          console.error('Failed to delete product', err);
+          throw err;
+        })
+      );
+  }
+
+  bulkAddProducts(items: any[]): Observable<any[]> {
+    return this.http.post<any[]>(`${this.baseUrl}/product-service/products/bulk`, items)
+      .pipe(
+        catchError(err => {
+          console.error('Failed to bulk add products', err);
+          throw err;
+        })
+      );
+  }
+
+  decrementProductQuantity(productId: number, amount: number = 1): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/product-service/products/${productId}/decrement-quantity`,
+      { amount }
+    ).pipe(
+      catchError(err => {
+        console.error('Failed to decrement product quantity', err);
+        return of(true);
+      })
     );
-    return of(updated);
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.put<any>(`/api/products/${updated.id}`, updated);
   }
 
-  deleteProduct(id:number) {
-    this.products = this.products.filter(p => p.id !== id);
-    return of(true);
-
-    // � REPLACE WITH SPRING BOOT:
-    // return this.http.delete<any>(`/api/products/${id}`);
+  incrementProductQuantity(productId: number, amount: number = 1): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/product-service/products/${productId}/increment-quantity`,
+      { amount }
+    ).pipe(
+      catchError(err => {
+        console.error('Failed to increment product quantity', err);
+        return of(true);
+      })
+    );
   }
 
-  bulkAddProducts(items:any[]) {
-    const startId = this.products.length + 1;
-    const mapped = items.map((item, index) => ({
-      ...item,
-      id: startId + index,
-      imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80'
-    }));
-    this.products = [...this.products, ...mapped];
-    return of(mapped);
+  // ==================== ORDERS ====================
 
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.post<any[]>('/api/products/bulk', items);
+  placeOrder(order: { userId: number; items: any[]; total: number }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/order-service/orders`, order)
+      .pipe(
+        catchError(err => {
+          console.error('Failed to place order', err);
+          throw err;
+        })
+      );
   }
 
-  placeOrder(order:any) {
-    this.orders = [{
-      ...order,
-      id: this.orders.length + 1,
-      createdAt: new Date().toISOString()
-    }, ...this.orders];
-    return of(true);
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.post<any>('/api/orders', order);
+  getOrdersByUser(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/order-service/orders/user/${userId}`)
+      .pipe(
+        catchError(err => {
+          console.error(`Failed to fetch orders for user ${userId}`, err);
+          return of([]);
+        })
+      );
   }
 
-  getOrdersByUser(userId: number) {
-    return of(this.orders.filter(order => order.userId === userId));
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.get<any[]>(`/api/orders/user/${userId}`);
-  }
-
-  getAllOrders() {
-    return of(this.orders);
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.get<any[]>('/api/orders');
-  }
-
-  decrementProductQuantity(productId: number, amount: number = 1) {
-    const product = this.products.find(p => p.id === productId);
-    if (product) {
-      product.quantity = Math.max(0, product.quantity - amount);
-    }
-    return of(true);
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.put<any>(`/api/products/${productId}/decrement-quantity`, { amount });
+  getAllOrders(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/order-service/orders`)
+      .pipe(
+        catchError(err => {
+          console.error('Failed to fetch all orders', err);
+          return of([]);
+        })
+      );
   }
 }

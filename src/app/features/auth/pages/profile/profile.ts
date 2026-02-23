@@ -21,6 +21,7 @@ export class ProfilePageComponent implements OnInit {
   newPassword = '';
   confirmPassword = '';
 
+  deactivatePassword = '';
   restorePassword = '';
 
   profileMessage = '';
@@ -33,15 +34,19 @@ export class ProfilePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.user = this.auth.getCurrentUser();
+    console.log('Profile page initialized - User:', this.user);
+    
     if (this.user) {
-      this.email = this.user.email;
-      this.address = this.user.address;
-      this.contactNumber = this.user.contactNumber;
+      this.email = this.user.email || '';
+      this.address = this.user.address || '';
+      this.contactNumber = this.user.contactNumber || '';
+      console.log('Profile form initialized with:', { email: this.email, address: this.address, contactNumber: this.contactNumber });
     }
   }
 
   updateProfile(): void {
     this.profileMessage = '';
+    console.log('Update profile called with:', { email: this.email, address: this.address, contactNumber: this.contactNumber });
 
     const emailValidation = this.auth.validateEmail(this.email);
     if (!emailValidation.valid) {
@@ -57,17 +62,23 @@ export class ProfilePageComponent implements OnInit {
       return;
     }
 
-    this.auth.updateProfile({
+    const updateData = {
       email: this.email,
       address: this.address,
       contactNumber: this.contactNumber
-    }).subscribe({
-      next: user => {
+    };
+    
+    console.log('Sending update to backend:', updateData);
+    
+    this.auth.updateProfile(updateData).subscribe({
+      next: (user) => {
+        console.log('Profile update successful:', user);
         this.user = user;
         this.profileMessage = 'Profile updated successfully.';
         this.notifications.show(this.profileMessage, 'success');
       },
-      error: err => {
+      error: (err) => {
+        console.error('Profile update error:', err);
         this.profileMessage = err.message || 'Unable to update profile.';
         this.notifications.show(this.profileMessage, 'error');
       }
@@ -76,26 +87,40 @@ export class ProfilePageComponent implements OnInit {
 
   changePassword(): void {
     this.passwordMessage = '';
+    console.log('Change password called');
 
-    if (this.newPassword.length < 8 || this.newPassword.length > 13) {
-      this.passwordMessage = 'Password must be 8-13 characters long.';
+    if (!this.oldPassword) {
+      this.passwordMessage = 'Please enter your old password.';
+      this.notifications.show(this.passwordMessage, 'error');
+      return;
+    }
+
+    const passwordValidation = this.auth.validatePassword(this.newPassword);
+    if (!passwordValidation.valid) {
+      this.passwordMessage = passwordValidation.message || 'Invalid password.';
+      this.notifications.show(this.passwordMessage, 'error');
       return;
     }
 
     if (this.newPassword !== this.confirmPassword) {
-      this.passwordMessage = 'Passwords do not match.';
+      this.passwordMessage = 'New passwords do not match.';
+      this.notifications.show(this.passwordMessage, 'error');
       return;
     }
 
+    console.log('Sending password change request');
+    
     this.auth.changePassword(this.oldPassword, this.newPassword).subscribe({
-      next: () => {
+      next: (user) => {
+        console.log('Password changed successfully:', user);
         this.passwordMessage = 'Password changed successfully.';
         this.notifications.show(this.passwordMessage, 'success');
         this.oldPassword = '';
         this.newPassword = '';
         this.confirmPassword = '';
       },
-      error: err => {
+      error: (err) => {
+        console.error('Password change error:', err);
         this.passwordMessage = err.message || 'Unable to change password.';
         this.notifications.show(this.passwordMessage, 'error');
       }
@@ -103,10 +128,24 @@ export class ProfilePageComponent implements OnInit {
   }
 
   deactivate(): void {
-    this.auth.deactivateAccount().subscribe(() => {
-      this.user = this.auth.getCurrentUser();
-      this.notifications.show('Account deactivated.', 'info');
-    });
+    if (!this.deactivatePassword) {
+      this.notifications.show('Please enter your password to deactivate account.', 'error');
+      return;
+    }
+
+    if (confirm('Are you sure you want to deactivate your account? You won\'t be able to place orders until you restore it.')) {
+      this.auth.deactivateAccount(this.deactivatePassword).subscribe({
+        next: () => {
+          this.user = this.auth.getCurrentUser();
+          this.deactivatePassword = '';
+          this.notifications.show('Account deactivated.', 'info');
+        },
+        error: err => {
+          console.error('Deactivation error:', err);
+          this.notifications.show(err.message || 'Failed to deactivate account.', 'error');
+        }
+      });
+    }
   }
 
   restore(): void {

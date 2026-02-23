@@ -9,38 +9,65 @@
   padding: 24px;
   box-shadow: 0 10px 24px rgba(18, 38, 63, 0.08);
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .section h2 {
   margin: 0;
+  font-size: 20px;
+  color: #1f2937;
 }
 
 .section p {
   margin: 0;
   color: #6b7280;
+  font-size: 14px;
 }
 
 label {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   color: #374151;
+  font-weight: 500;
 }
 
 input {
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+input:hover {
+  border-color: #d1d5db;
+}
+
+input:focus {
+  outline: none;
+  border-color: #1f6feb;
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
 }
 
 .message {
-  color: #1f6feb;
+  padding: 12px;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 14px;
+}
+
+.message {
+  background: #dbeafe;
+  color: #1e40af;
+  border-left: 3px solid #1e40af;
 }
 
 .actions {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 button.primary {
@@ -51,13 +78,35 @@ button.primary {
   padding: 10px 16px;
   font-weight: 600;
   cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+button.primary:hover {
+  background: #1d56d4;
+  transform: translateY(-2px);
+}
+
+button.primary:active {
+  transform: translateY(0);
 }
 
 button.ghost {
   background: #f3f4f6;
-  border: none;
+  border: 1px solid #e5e7eb;
+  color: #374151;
   border-radius: 10px;
   padding: 10px 16px;
   font-weight: 600;
   cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+button.ghost:hover {
+  background: #e5e7eb;
+}
+
+button.ghost:active {
+  background: #d1d5db;
 }

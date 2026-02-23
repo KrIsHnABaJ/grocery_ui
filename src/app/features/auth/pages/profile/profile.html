@@ -5,17 +5,17 @@
 
     <label>
       Email
-      <input type="email" [(ngModel)]="email" />
+      <input type="email" name="email" [(ngModel)]="email" />
     </label>
 
     <label>
       Contact Number
-      <input type="text" [(ngModel)]="contactNumber" />
+      <input type="text" name="contactNumber" [(ngModel)]="contactNumber" />
     </label>
 
     <label>
       Address
-      <input type="text" [(ngModel)]="address" />
+      <input type="text" name="address" [(ngModel)]="address" />
     </label>
 
     <div class="message" *ngIf="profileMessage">{{profileMessage}}</div>
@@ -29,17 +29,17 @@
 
     <label>
       Old Password
-      <input type="password" [(ngModel)]="oldPassword" />
+      <input type="password" name="oldPassword" [(ngModel)]="oldPassword" />
     </label>
 
     <label>
       New Password
-      <input type="password" [(ngModel)]="newPassword" />
+      <input type="password" name="newPassword" [(ngModel)]="newPassword" />
     </label>
 
     <label>
       Confirm Password
-      <input type="password" [(ngModel)]="confirmPassword" />
+      <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" />
     </label>
 
     <div class="message" *ngIf="passwordMessage">{{passwordMessage}}</div>
@@ -51,16 +51,24 @@
     <h2>Account Status</h2>
     <p>Status: <strong>{{user?.status}}</strong></p>
 
+    <div *ngIf="user?.status === 'active'">
+      <p style="color: #f59e0b; margin-bottom: 12px;">⚠️ Deactivating your account will prevent you from placing orders until you restore it.</p>
+      <label>
+        Password (required to deactivate)
+        <input type="password" name="deactivatePassword" [(ngModel)]="deactivatePassword" />
+      </label>
+    </div>
+
     <div *ngIf="user?.status === 'deactivated'">
       <p style="color: #d97706; margin-bottom: 12px;">⚠️ Your account is deactivated. You cannot place orders until you restore it.</p>
       <label>
         Password (to restore account)
-        <input type="password" [(ngModel)]="restorePassword" />
+        <input type="password" name="restorePassword" [(ngModel)]="restorePassword" />
       </label>
     </div>
 
     <div class="actions">
-      <button class="ghost" (click)="deactivate()" *ngIf="user?.status === 'active'">Deactivate</button>
+      <button class="ghost" (click)="deactivate()" *ngIf="user?.status === 'active'">Deactivate Account</button>
       <button class="primary" (click)="restore()" *ngIf="user?.status === 'deactivated'">Restore Account</button>
     </div>
   </div>

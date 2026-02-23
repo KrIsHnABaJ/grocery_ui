@@ -9,18 +9,21 @@
       <div class="order-summary" (click)="toggleExpand(order.id)">
         <div>
           <strong>Order #{{order.id}}</strong>
-          <span class="user">User ID: {{order.userId}}</span>
-          <span class="date">{{order.createdAt | date: 'medium'}}</span>
+          <span class="user">Customer: {{order.userName}}</span>
+          <span class="date">{{order.orderDate | date: 'medium'}}</span>
         </div>
-        <div class="total">₹ {{order.total}}</div>
+        <div class="total">₹ {{order.totalAmount | number: '1.2-2'}}</div>
       </div>
 
       <div class="order-details" *ngIf="expandedOrder === order.id">
         <div class="items">
           <div class="item" *ngFor="let item of order.items">
-            <span>{{item.name}}</span>
-            <span>₹ {{item.price}} x {{item.quantity}} = ₹ {{item.price * item.quantity}}</span>
+            <span>{{item.productName}}</span>
+            <span>₹ {{item.price | number: '1.2-2'}} x {{item.quantity}} = ₹ {{item.subtotal | number: '1.2-2'}}</span>
           </div>
+        </div>
+        <div class="order-total">
+          <strong>Total: ₹ {{order.totalAmount | number: '1.2-2'}}</strong>
         </div>
       </div>
     </div>

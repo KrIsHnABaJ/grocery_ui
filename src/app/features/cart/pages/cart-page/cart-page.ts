@@ -33,6 +33,8 @@ export class CartPageComponent {
 
   placeOrder(){
     const user = this.auth.getCurrentUser();
+    console.log('Place order - Current user:', user);
+    
     if (!user) {
       this.notifications.show('Please login to place an order.', 'error');
       return;
@@ -48,13 +50,25 @@ export class CartPageComponent {
       return;
     }
 
-    this.api.placeOrder({
+    const orderData = {
       userId: user.id,
       items: this.cart.getItems(),
       total: this.cart.getTotal()
-    }).subscribe(() => {
-      this.cart.clear();
-      this.notifications.show('Order placed successfully!', 'success');
+    };
+    
+    console.log('Placing order:', orderData);
+    
+    this.api.placeOrder(orderData).subscribe({
+      next: (response) => {
+        console.log('Order placed successfully:', response);
+        this.cart.clear();
+        this.notifications.show('Order placed successfully!', 'success');
+      },
+      error: (err) => {
+        console.error('Order placement error:', err);
+        const errorMessage = err.error?.error || err.message || 'Failed to place order. Please try again.';
+        this.notifications.show(errorMessage, 'error');
+      }
     });
   }
 }

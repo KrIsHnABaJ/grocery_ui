@@ -1,10 +1,16 @@
-<div class="form-card" *ngIf="product">
+<div class="form-card">
   <div class="header">
     <h2>Update Product</h2>
     <p>Edit the product details.</p>
   </div>
 
-  <div class="fields">
+  <div *ngIf="loading" style="padding: 20px; text-align: center;">
+    Loading product...
+  </div>
+
+  <div class="error" *ngIf="errorMessage && !loading">{{errorMessage}}</div>
+
+  <div class="fields" *ngIf="!loading && product">
     <label>
       Name
       <input [(ngModel)]="product.name" />
@@ -31,7 +37,7 @@
     </label>
   </div>
 
-  <div class="error" *ngIf="errorMessage">{{errorMessage}}</div>
+  <div class="error" *ngIf="errorMessage && product">{{errorMessage}}</div>
 
-  <button class="primary" (click)="save()">Save Changes</button>
+  <button class="primary" (click)="save()" *ngIf="!loading && product">Save Changes</button>
 </div>

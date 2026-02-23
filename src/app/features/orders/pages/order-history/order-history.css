@@ -12,6 +12,23 @@
   color: #6b7280;
 }
 
+.loading {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+  background: #f3f4f6;
+  border-radius: 12px;
+}
+
+.error {
+  text-align: center;
+  color: #dc2626;
+  padding: 16px;
+  background: #fee2e2;
+  border-radius: 12px;
+  border-left: 4px solid #dc2626;
+}
+
 .order {
   background: #ffffff;
   border-radius: 16px;
@@ -41,13 +58,79 @@
 
 .items {
   display: grid;
-  gap: 8px;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   color: #374151;
+}
+
+.item-details {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex: 1;
+}
+
+.item-name {
+  flex: 1;
+}
+
+.item-price {
+  color: #6b7280;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.item-subtotal {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-shipped {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.status-delivered {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .empty {
@@ -57,3 +140,4 @@
   background: #f9fafb;
   border-radius: 12px;
 }
+

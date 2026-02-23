@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../../core/services/api';
+import { CartService } from '../../../../core/services/cart';
 import { ProductCardComponent } from '../../../../shared/components/product-card/product-card';
 
 @Component({
@@ -15,9 +16,16 @@ export class ProductListComponent implements OnInit {
   products:any[]=[];
   searchTerm = '';
 
-  constructor(private api:ApiService){}
+  constructor(
+    private api:ApiService,
+    private cart:CartService
+  ){}
 
   ngOnInit(){
+    this.loadProducts();
+  }
+
+  loadProducts(){
     this.api.getProducts().subscribe(data => {
       this.products = data;
     });

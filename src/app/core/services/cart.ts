@@ -45,11 +45,34 @@ export class CartService {
       });
     }
     // Decrement product quantity from inventory
-    this.api.decrementProductQuantity(item.id, 1);
+    this.api.decrementProductQuantity(item.id, 1).subscribe({
+      next: (response) => {
+        // Update local item's quantity from server response
+        const cartItem = this.items.find(entry => entry.id === item.id);
+        if (cartItem && response && response.quantity !== undefined) {
+          cartItem.maxStock = response.quantity;
+        }
+      },
+      error: (err) => {
+        console.error('Failed to decrement product quantity:', err);
+      }
+    });
     return true;
   }
 
   removeById(id:number){
+    const item = this.items.find(entry => entry.id === id);
+    if (item) {
+      // Restore the product quantity back to inventory
+      this.api.incrementProductQuantity(id, item.cartQuantity || 1).subscribe({
+        next: () => {
+          console.log(`Restored ${item.cartQuantity || 1} units of product ${id} to inventory`);
+        },
+        error: (err) => {
+          console.error('Failed to restore product quantity:', err);
+        }
+      });
+    }
     this.items = this.items.filter(item => item.id !== id);
   }
 
@@ -58,9 +81,44 @@ export class CartService {
     if (!target) {
       return;
     }
-    // Ensure quantity is between 1 and max stock
-    const validQuantity = Math.max(1, Math.min(quantity, target.maxStock));
-    target.cartQuantity = validQuantity;
+    
+    const oldQuantity = target.cartQuantity || 1;
+    const newQuantity = Math.max(1, quantity); // Ensure at least 1
+    const quantityDiff = newQuantity - oldQuantity;
+    
+    if (quantityDiff === 0) {
+      return; // No change
+    }
+    
+    if (quantityDiff > 0) {
+      // Increasing quantity - need to decrement inventory
+      this.api.decrementProductQuantity(id, quantityDiff).subscribe({
+        next: (response) => {
+          console.log(`Decremented ${quantityDiff} units from product ${id}`);
+          target.cartQuantity = newQuantity;
+          if (response && response.quantity !== undefined) {
+            target.maxStock = response.quantity;
+          }
+        },
+        error: (err) => {
+          console.error('Failed to decrement product quantity:', err);
+        }
+      });
+    } else {
+      // Decreasing quantity - need to increment inventory back
+      this.api.incrementProductQuantity(id, Math.abs(quantityDiff)).subscribe({
+        next: (response) => {
+          console.log(`Restored ${Math.abs(quantityDiff)} units to product ${id}`);
+          target.cartQuantity = newQuantity;
+          if (response && response.quantity !== undefined) {
+            target.maxStock = response.quantity;
+          }
+        },
+        error: (err) => {
+          console.error('Failed to restore product quantity:', err);
+        }
+      });
+    }
   }
 
   getItems(){
@@ -74,7 +132,20 @@ export class CartService {
     return this.items.reduce((sum,p)=>sum+(p.price * (p.cartQuantity || 1)),0);
   }
 
-  clear(){
+  clear(restoreInventory: boolean = false){
+    if (restoreInventory) {
+      // Restore all items back to inventory (e.g., user abandoned cart)
+      this.items.forEach(item => {
+        this.api.incrementProductQuantity(item.id, item.cartQuantity || 1).subscribe({
+          next: () => {
+            console.log(`Restored ${item.cartQuantity || 1} units of product ${item.id} to inventory`);
+          },
+          error: (err) => {
+            console.error('Failed to restore product quantity:', err);
+          }
+        });
+      });
+    }
     this.items = [];
   }
 }

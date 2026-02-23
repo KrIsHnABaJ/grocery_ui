@@ -1,12 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { tap, catchError } from 'rxjs/operators';
 
 /**
- * 🟡 BACKEND MAPPING FOR AUTHSERVICE
- * This service handles user authentication and profile management.
- * Replace all localStorage operations with Spring Boot REST API calls.
- * 
  * SPRING BOOT ENDPOINTS TO CREATE:
  * 
  * 1. POST /api/auth/login
@@ -55,185 +52,196 @@ export interface UserAccount {
   id: number;
   name: string;
   email: string;
+  username: string;
   contactNumber: string;
   address: string;
-  password: string;
   role: UserRole;
   status: AccountStatus;
 }
 
-const USERS_KEY = 'grocery.users';
 const CURRENT_USER_KEY = 'grocery.currentUser';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private users: UserAccount[] = [];
+
+  private baseUrl = 'http://localhost:8080';
   private currentUserSubject = new BehaviorSubject<UserAccount | null>(null);
 
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor() {
-    const storedUsers = localStorage.getItem(USERS_KEY);
+  constructor(private http: HttpClient) {
+    // Check if user was logged in before
     const storedCurrent = localStorage.getItem(CURRENT_USER_KEY);
-
-    this.users = storedUsers ? JSON.parse(storedUsers) : this.seedUsers();
-    this.persistUsers();
-
     if (storedCurrent) {
       this.currentUserSubject.next(JSON.parse(storedCurrent));
     }
   }
 
   login(identifier: string, password: string): Observable<UserAccount> {
-    const match = this.users.find(user =>
-      (user.email === identifier || user.name === identifier) &&
-      user.password === password
+    return this.http.post<UserAccount>(`${this.baseUrl}/user-service/auth/login`, {
+      identifier,
+      password
+    }).pipe(
+      tap(user => {
+        this.currentUserSubject.next(user);
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+      }),
+      catchError(err => {
+        console.error('Login failed', err);
+        return throwError(() => new Error(err.error?.message || 'Invalid credentials'));
+      })
     );
-
-    if (!match) {
-      return throwError(() => new Error('Invalid credentials'));
-    }
-
-    this.currentUserSubject.next(match);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(match));
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.post<UserAccount>('/api/auth/login', {
-    //   identifier,
-    //   password
-    // }).pipe(
-    //   tap(user => {
-    //     this.currentUserSubject.next(user);
-    //     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    //   })
-    // );
-    return of(match);
   }
 
-  register(account: Omit<UserAccount, 'id' | 'role' | 'status'>): Observable<UserAccount> {
-    const exists = this.users.some(user => user.email === account.email);
-    if (exists) {
-      return throwError(() => new Error('Email already registered'));
-    }
-
-    const newUser: UserAccount = {
-      ...account,
-      id: this.users.length + 1,
-      role: 'customer',
-      status: 'active'
-    };
-
-    this.users = [...this.users, newUser];
-    this.persistUsers();
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.post<UserAccount>('/api/auth/register', account);
-    return of(newUser);
+  register(account: Omit<UserAccount, 'id' | 'role' | 'status' | 'username'> & { password: string }): Observable<UserAccount> {
+    return this.http.post<UserAccount>(`${this.baseUrl}/user-service/auth/register`, account)
+      .pipe(
+        tap(user => {
+          this.currentUserSubject.next(user);
+          localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+        }),
+        catchError(err => {
+          console.error('Registration failed', err);
+          return throwError(() => new Error(err.error?.message || 'Registration failed'));
+        })
+      );
   }
 
-  logout(): void {
-    this.currentUserSubject.next(null);
-    localStorage.removeItem(CURRENT_USER_KEY);
+  logout(): Observable<any> {
+    return this.http.post(`${this.baseUrl}/user-service/auth/logout`, {})
+      .pipe(
+        tap(() => {
+          this.currentUserSubject.next(null);
+          localStorage.removeItem(CURRENT_USER_KEY);
+        }),
+        catchError(err => {
+          console.error('Logout failed', err);
+          // Still clear local state even if server logout fails
+          this.currentUserSubject.next(null);
+          localStorage.removeItem(CURRENT_USER_KEY);
+          return throwError(() => new Error('Logout failed'));
+        })
+      );
   }
 
   updateProfile(update: Partial<Pick<UserAccount, 'email' | 'address' | 'contactNumber'>>): Observable<UserAccount> {
-    const current = this.currentUserSubject.value;
-    if (!current) {
-      return throwError(() => new Error('Not authenticated'));
+    const user = this.currentUserSubject.value;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    
+    if (user) {
+      headers = headers.set('X-User-Id', user.id.toString());
     }
-
-    const updated: UserAccount = { ...current, ...update };
-    this.users = this.users.map(user => user.id === updated.id ? updated : user);
-    this.persistUsers();
-    this.currentUserSubject.next(updated);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updated));
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.put<UserAccount>('/api/auth/profile', update).pipe(
-    //   tap(user => {
-    //     this.currentUserSubject.next(user);
-    //     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    //   })
-    // );
-    return of(updated);
+    
+    console.log('Sending profile update:', { user, update, headers: headers.keys() });
+    
+    return this.http.put<UserAccount>(
+      `${this.baseUrl}/user-service/auth/profile`, 
+      update,
+      { headers }
+    ).pipe(
+      tap((updatedUser) => {
+        console.log('Profile update response:', updatedUser);
+        this.currentUserSubject.next(updatedUser);
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+      }),
+      catchError(err => {
+        console.error('Profile update failed - Error response:', err.error);
+        console.error('Profile update failed - Full error:', err);
+        return throwError(() => new Error(err.error?.error || err.error?.message || 'Profile update failed'));
+      })
+    );
   }
 
   changePassword(oldPassword: string, newPassword: string): Observable<UserAccount> {
-    const current = this.currentUserSubject.value;
-    if (!current) {
-      return throwError(() => new Error('Not authenticated'));
+    const user = this.currentUserSubject.value;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    
+    if (user) {
+      headers = headers.set('X-User-Id', user.id.toString());
     }
-
-    if (current.password !== oldPassword) {
-      return throwError(() => new Error('Old password is incorrect'));
-    }
-
-    const updated: UserAccount = { ...current, password: newPassword };
-    this.users = this.users.map(user => user.id === updated.id ? updated : user);
-    this.persistUsers();
-    this.currentUserSubject.next(updated);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updated));
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.put<UserAccount>('/api/auth/change-password', {
-    //   oldPassword,
-    //   newPassword
-    // }).pipe(
-    //   tap(user => {
-    //     this.currentUserSubject.next(user);
-    //     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    //   })
-    // );
-    return of(updated);
+    
+    console.log('Changing password for user:', user?.id);
+    
+    return this.http.put<UserAccount>(
+      `${this.baseUrl}/user-service/auth/change-password`, 
+      {
+        oldPassword,
+        newPassword
+      },
+      { headers }
+    ).pipe(
+      tap((updatedUser) => {
+        console.log('Password changed successfully');
+        this.currentUserSubject.next(updatedUser);
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+      }),
+      catchError(err => {
+        console.error('Password change failed - Error:', err.error);
+        return throwError(() => new Error(err.error?.error || err.error?.message || 'Password change failed'));
+      })
+    );
   }
 
-  deactivateAccount(): Observable<UserAccount> {
-    const current = this.currentUserSubject.value;
-    if (!current) {
-      return throwError(() => new Error('Not authenticated'));
+  deactivateAccount(password: string): Observable<UserAccount> {
+    const user = this.currentUserSubject.value;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    
+    if (user) {
+      headers = headers.set('X-User-Id', user.id.toString());
     }
-
-    const updated: UserAccount = { ...current, status: 'deactivated' };
-    this.users = this.users.map(user => user.id === updated.id ? updated : user);
-    this.persistUsers();
-    this.currentUserSubject.next(updated);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updated));
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.put<UserAccount>('/api/auth/deactivate', {}).pipe(
-    //   tap(user => {
-    //     this.currentUserSubject.next(user);
-    //     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    //   })
-    // );
-    return of(updated);
+    
+    console.log('Deactivating account for user:', user?.id);
+    
+    return this.http.put<UserAccount>(
+      `${this.baseUrl}/user-service/auth/deactivate`, 
+      { password },
+      { headers }
+    ).pipe(
+      tap((updatedUser) => {
+        console.log('Account deactivated successfully');
+        this.currentUserSubject.next(updatedUser);
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+      }),
+      catchError(err => {
+        console.error('Account deactivation failed - Error:', err.error);
+        return throwError(() => new Error(err.error?.error || err.error?.message || 'Account deactivation failed'));
+      })
+    );
   }
 
   restoreAccount(password: string): Observable<UserAccount> {
-    const current = this.currentUserSubject.value;
-    if (!current) {
-      return throwError(() => new Error('Not authenticated'));
+    const user = this.currentUserSubject.value;
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    
+    if (user) {
+      headers = headers.set('X-User-Id', user.id.toString());
     }
-
-    // Verify password before restoring account
-    if (current.password !== password) {
-      return throwError(() => new Error('Incorrect password. Account cannot be restored.'));
-    }
-
-    const updated: UserAccount = { ...current, status: 'active' };
-    this.users = this.users.map(user => user.id === updated.id ? updated : user);
-    this.persistUsers();
-    this.currentUserSubject.next(updated);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updated));
-
-    // 🟡 REPLACE WITH SPRING BOOT:
-    // return this.http.put<UserAccount>('/api/auth/restore', { password }).pipe(
-    //   tap(user => {
-    //     this.currentUserSubject.next(user);
-    //     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    //   })
-    // );
-    return of(updated);
+    
+    console.log('Restoring account for user:', user?.id);
+    
+    return this.http.put<UserAccount>(
+      `${this.baseUrl}/user-service/auth/restore`, 
+      { password },
+      { headers }
+    ).pipe(
+      tap((updatedUser) => {
+        console.log('Account restored successfully');
+        this.currentUserSubject.next(updatedUser);
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+      }),
+      catchError(err => {
+        console.error('Account restore failed - Error:', err.error);
+        return throwError(() => new Error(err.error?.error || err.error?.message || 'Account restore failed'));
+      })
+    );
   }
 
   getCurrentUser(): UserAccount | null {
@@ -258,16 +266,6 @@ export class AuthService {
     if (password.length < 8) {
       return { valid: false, message: 'Password must be at least 8 characters.' };
     }
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    
-    if (!hasUpper || !hasLower || !hasNumber) {
-      return { 
-        valid: false, 
-        message: 'Password must contain uppercase, lowercase, and numbers.' 
-      };
-    }
     return { valid: true };
   }
 
@@ -280,34 +278,5 @@ export class AuthService {
       return { valid: false, message: 'Contact number must be 10 digits.' };
     }
     return { valid: true };
-  }
-
-  private persistUsers(): void {
-    localStorage.setItem(USERS_KEY, JSON.stringify(this.users));
-  }
-
-  private seedUsers(): UserAccount[] {
-    return [
-      {
-        id: 1,
-        name: 'Admin',
-        email: 'admin@grocery.dev',
-        contactNumber: '9999999999',
-        address: 'HQ',
-        password: 'Admin@123',
-        role: 'admin',
-        status: 'active'
-      },
-      {
-        id: 2,
-        name: 'Customer',
-        email: 'customer@grocery.dev',
-        contactNumber: '8888888888',
-        address: 'Customer Lane',
-        password: 'Customer@123',
-        role: 'customer',
-        status: 'active'
-      }
-    ];
   }
 }
